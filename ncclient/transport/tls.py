@@ -16,7 +16,7 @@ import logging
 import socket
 import sys
 import threading
-
+import oqs
 from socket import AF_INET, SOCK_STREAM
 from ssl import CERT_REQUIRED, SSLContext, SSLError
 
@@ -53,6 +53,10 @@ class TLSSession(Session):
         self._closing = threading.Event()
         self.parser = DefaultXMLParser(self)
         self.logger = SessionLoggerAdapter(logger, {'session': self})
+
+        self.logger.info("liboqs version:", oqs.oqs_version())
+        self.logger.info("liboqs-python version:", oqs.oqs_python_version())
+
 
     def _dispatch_message(self, raw):
         self.logger.info("Received message from host")
@@ -97,7 +101,7 @@ class TLSSession(Session):
             raise TLSError('Missing client certificate file')
         if protocol is None:
             raise TLSError('Missing TLS protocol')
-
+        self.logger.debug("Received PROTOCOL:\n%s", protocol)
         ssl_context = SSLContext(protocol)
         ssl_context.verify_mode = CERT_REQUIRED
         ssl_context.check_hostname = check_hostname
